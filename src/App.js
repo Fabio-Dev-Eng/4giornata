@@ -24,7 +24,7 @@ const CHECKBOX_INDETERMINATE = "[-]";
 const CHECKBOX_FULL = "[x]";
 
 async function fetchFines(plate) {
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   if (!plate) {
     return FINES;
@@ -34,13 +34,17 @@ async function fetchFines(plate) {
 }
 
 export default function App() {
+  const [plate, setPlate] = React.useState("");
+
+  const [filterPlate, setFilterPlate] = React.useState("");
+
   const [fines, setFines] = React.useState(null);
   const [error, setError] = React.useState(null);
 
   React.useEffect(() => {
     let ignore = false;
 
-    fetchFines()
+    fetchFines(filterPlate)
       .then(fines => {
         if (!ignore) {
           setFines(fines);
@@ -52,10 +56,11 @@ export default function App() {
           setError(error);
         }
       });
+
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [filterPlate]);
 
   const stupidCounter = useStupidCounter();
 
@@ -117,7 +122,20 @@ export default function App() {
           <th>Ragione</th>
         </tr>
         <tr>
-          <th colSpan={4}>{stupidCounter}</th>
+          <th colSpan={4}>
+            <input
+              placeholder="Cerca per targa"
+              value={plate}
+              onChange={event => setPlate(event.currentTarget.value)}
+            />
+            <button
+              onClick={event => {
+                setFilterPlate(plate);
+              }}
+            >
+              Cerca ({filterPlate})
+            </button>
+          </th>
         </tr>
       </thead>
       <tbody>
