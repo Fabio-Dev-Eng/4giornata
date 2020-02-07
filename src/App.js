@@ -23,16 +23,47 @@ const CHECKBOX_EMPTY = "[ ]";
 const CHECKBOX_INDETERMINATE = "[-]";
 const CHECKBOX_FULL = "[x]";
 
+async function fetchFines(plate) {
+  await new Promise(resolve => setTimeout(resolve, 5000));
+
+  if (!plate) {
+    return FINES;
+  }
+
+  return FINES.filter(fine => fine.plate === plate);
+}
+
 export default function App() {
-  const fines = FINES;
+  const [fines, setFines] = React.useState(null);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    fetchFines()
+      .then(fines => {
+        if (!ignore) {
+          setFines(fines);
+          setError(null);
+        }
+      })
+      .catch(error => {
+        if (!ignore) {
+          setError(error);
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const stupidCounter = useStupidCounter();
 
   const [selection, setSelection] = usePersistentState("selection", {});
 
-  const noSelected = fines.every(fine => !selection[fine.id]);
+  const noSelected = fines && fines.every(fine => !selection[fine.id]);
 
-  const allSelected = fines.every(fine => selection[fine.id]);
+  const allSelected = fines && fines.every(fine => selection[fine.id]);
 
   function handleHeaderCheckboxClick(event) {
     // Se l'utente ha già selezionato
@@ -64,6 +95,10 @@ export default function App() {
       // creato
       setSelection(nextSelection);
     }
+  }
+
+  if (fines == null) {
+    return "Loading…";
   }
 
   return (
